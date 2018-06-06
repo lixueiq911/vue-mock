@@ -165,16 +165,494 @@
 	 <script type="text/javascript">
     	
    $(function(){
-   		
-   		
-   		
+   		new Vue({
+	      el: '#app',
+	      data(){
+	        let self = this;
+	        return {
+	            userId: self.$route.params.userId,
+	            formData: {
+	                storeName: "",          //便利店名称
+	                phone: "",              //手机号
+	                password: "",           //密码
+	                source: "",             //来源
+	                WCCS: "",               //代码
+	                moneyCapacity: "",      //容量（金额）
+	                salesCapacity: "",      //容量（箱数）
+	                department: "",
+	                area: "",
+	                city: "",
+	                m1Name: "",
+	                m2Name: "",
+	                m3Name: "",
+	                m1Phone: "",
+	                m2Phone: "",
+	                m3Phone: "",
+	                address: "",            //地址
+	                longitude: "",
+	                latitude: "",
+	                m1Status:"",
+	                m2Status:"",
+	                m3Status:""
+	            },
+	
+	            rules: {
+	                storeName: [{required: true, message: "请输入便利店名称", trigger: "blur"}],
+	                phone: [
+	                    {required: true, message: "请输入手机号", trigger: "blur"},
+	                    {pattern: /^\d{11}$/, message: "请输入正确的号码", trigger: "blur"}
+	                ],
+	                password: [{required: true, message: "请输入密码", trigger: "blur"}],
+	                source: [{required: true, message: "请选择来源", trigger: "blur"}],
+	                WCCS: [{required: true, message: "请输入代码", trigger: "blur"}],
+	                salesCapacity: [
+	                    {required: true, message: "请输入容量", trigger: "blur"},
+	                    {pattern: /^\d+$/, message: "请输入正确容量", trigger: "blur"}
+	                ],
+	                moneyCapacity: [
+	                    {required: true, message: "请输入容量", trigger: "blur"},
+	                    {pattern: /^\d+$/, message: "请输入正确容量", trigger: "blur"}
+	                ],
+	                department: [{required: true, message: "请选择事业部", trigger: "blur"}],
+	                area: [{required: true, message: "请选择区域", trigger: "blur"}],
+	                city: [{required: true, message: "请选择城市", trigger: "blur"}],
+	                m1Name: [{required: true, message: "请输入M1姓名", trigger: "blur"}],
+	                m2Name: [{required: true, message: "请输入M2姓名", trigger: "blur"}],
+	                m3Name: [{required: true, message: "请输入M3姓名", trigger: "blur"}],
+	                m1Phone: [
+	                    {required: true, message: "请输入M1电话", trigger: "blur"},
+	                    {pattern: /^\d{11}$/, message: "请输入正确的号码", trigger: "blur"}
+	                ],
+	                m2Phone: [
+	                    {required: true, message: "请输入M2电话", trigger: "blur"},
+	                    {pattern: /^\d{11}$/, message: "请输入正确的号码", trigger: "blur"}
+	                ],
+	                m3Phone: [
+	                    {required: true, message: "请输入M3电话", trigger: "blur"},
+	                    {pattern: /^\d{11}$/, message: "请输入正确的号码", trigger: "blur"}
+	                ],
+	                address: [{required: true, message: "请输入地址", trigger: "blur"}],
+	                longitude: "",
+	                latitude: ""
+	            },
+	
+	            departmentList: [],
+	            areaList: [],
+	            cityList: [],
+	            m3List:[],
+	            m2List:[],
+	            m1List:[],
+	        }
+	    },
+	
+	    methods: {
+	        loadData(){
+	            let self = this;
+	
+	            let postData = self.$qs.stringify({
+	                "budUser.userId": self.userId
+	            });
+	
+	            let loading = self.$loading({fullscreen: true});
+	            self.$axios.post(self.$api.accountDetail, postData).then(res => {
+	                loading.close();
+	                if (res.data.opflag) {
+	                    let mes = res.data.data;
+	                    console.log(res);
+	                    self.formData.storeName = mes.userStore;
+	                    self.formData.phone = mes.userTel;
+	                    self.formData.password = mes.pwd;
+	                    self.formData.source = mes.source;
+	                    self.formData.WCCS = mes.b2bIdOrWccs;
+	                    self.formData.moneyCapacity = mes.amountCapacity.toString();
+	                    self.formData.salesCapacity = mes.salesCapacity.toString();
+	                    self.formData.department = mes.buCode;
+	                    self.formData.m3Status = mes.m3Status;
+	                    self.formData.m2Status = mes.m2Status;
+	                    self.formData.m1Status = mes.m1Status;
+	                    self.formData.address = mes.storeAddress;
+	                    self.formData.longitude = mes.longitude;
+	                    self.formData.latitude = mes.latitude;
+	
+	                    map.panTo(new qq.maps.LatLng(self.formData.latitude, self.formData.longitude));
+	                    let center = new qq.maps.LatLng(self.formData.latitude, self.formData.longitude);
+	                    marker = new qq.maps.Marker({
+	                        position: center,
+	                        map: map
+	                    });
+	                    setTimeout(function () {
+	                        self.formData.area = mes.regionCode;
+	                        setTimeout(function () {
+	                            self.formData.city = mes.areaCode;
+	                            setTimeout(function () {
+	                                // self.formData.m3Name = mes.m3;
+	                                self.formData.m3Name = mes.m3Id;
+	                                setTimeout(function () {
+	                                    // self.formData.m2Name = mes.m2;
+	                                    self.formData.m2Name = mes.m2Id;
+	                                    setTimeout(function () {
+	                                        // self.formData.m1Name = mes.m1;
+	                                        self.formData.m1Name = mes.m1Id;
+	                                    },0)
+	                                },0)
+	                            },0)
+	                        }, 0)
+	                    }, 0);
+	                } else {
+	                    self.$message({
+	                        message: "获取账号数据失败",
+	                        type: "error"
+	                    });
+	                }
+	            }).catch(() => {
+	                loading.close();
+	            });
+	        },
+	
+	        //获取事业部
+	        getDepartment(){
+	            let self = this;
+	
+	            self.$axios.get(self.$api.departmentList).then(res => {
+	                if (res.data.opflag) {
+	                    self.departmentList = res.data.data;
+	                } else {
+	                    self.$message({
+	                        message: "获取事业部失败",
+	                        type: "error"
+	                    });
+	                }
+	            }).catch(() => {
+	
+	            });
+	        },
+	
+	        //获取区域
+	        getArea(){
+	            let self = this;
+	
+	            let postData = self.$qs.stringify({
+	                "budRegion.buCode": self.formData.department
+	            });
+	
+	            self.$axios.post(self.$api.areaList, postData).then(res => {
+	                if (res.data.opflag) {
+	                    self.areaList = res.data.data;
+	                } else {
+	                    self.$message({
+	                        message: "获取区域失败",
+	                        type: "error"
+	                    });
+	                }
+	            }).catch(() => {
+	
+	            });
+	        },
+	
+	        //获取城市
+	        getCity(){
+	            let self = this;
+	
+	            let postData = self.$qs.stringify({
+	                "budRegion.regionCode": self.formData.area,
+	            });
+	
+	            self.$axios.post(self.$api.cityList, postData).then(res => {
+	                if (res.data.opflag) {
+	                    this.cityList = res.data.data;
+	                } else {
+	                    self.$message({
+	                        message: "获取城市失败",
+	                        type: "error"
+	                    });
+	                }
+	            }).catch(() => {
+	
+	            });
+	        },
+	
+	        //获取M3
+	        getM3List(){
+	            let self = this;
+	
+	            let postData = self.$qs.stringify({
+	                "budUser.areaCode": self.formData.city
+	            });
+	
+	            self.$axios.post(self.$api.initM3Data, postData).then(res => {
+	                console.log(res);
+	                if (res.data.opflag) {
+	                    self.m3List = res.data.data;
+	                } else {
+	                    self.$message({
+	                        message: "获取M3失败",
+	                        type: "error"
+	                    });
+	                }
+	            }).catch(() => {
+	
+	            });
+	        },
+	        //获取M2
+	        getM2List(){
+	            let self = this;
+	            let postData = self.$qs.stringify({
+	                "budSalesman.role": "M2",       //角色
+	                "budSalesman.parentId": self.formData.m3Name    //父类主键
+	            });
+	
+	            self.$axios.post(self.$api.initM2Data, postData).then(res => {
+	                if (res.data.opflag) {
+	                    self.m2List = res.data.data;
+	                } else {
+	                    self.$message({
+	                        message: "获取M2失败",
+	                        type: "error"
+	                    });
+	                }
+	            }).catch(() => {
+	
+	            });
+	        },
+	        //获取M1
+	        getM1List(){
+	            let self = this;
+	            let postData = self.$qs.stringify({
+	                "budSalesman.role": "M1",       //角色
+	                "budSalesman.parentId": self.formData.m2Name    //父类主键
+	            });
+	
+	            self.$axios.post(self.$api.initM2Data, postData).then(res => {
+	                if (res.data.opflag) {
+	                    self.m1List = res.data.data;
+	                } else {
+	                    self.$message({
+	                        message: "获取M1失败",
+	                        type: "error"
+	                    });
+	                }
+	            }).catch(() => {
+	
+	            });
+	        },
+	
+	        //选择事业部
+	        onSelectDepartment(){
+	            this.formData.area = "";
+	            this.areaList = [];
+	            this.formData.city = "";
+	            this.cityList = [];
+	            this.formData.m3Name = "";
+	            this.formData.m2Name = "";
+	            this.formData.m1Name = "";
+	            this.m3List = [];
+	            this.m2List = [];
+	            this.m1List = [];
+	            this.getArea();
+	        },
+	
+	        //选择区域
+	        onSelectArea(){
+	            this.formData.city = "";
+	            this.cityList = [];
+	            this.formData.m3Name = "";
+	            this.formData.m2Name = "";
+	            this.formData.m1Name = "";
+	            this.m3List = [];
+	            this.m2List = [];
+	            this.m1List = [];
+	            this.getCity();
+	        },
+	
+	        // 选择城市
+	        onSelectCity(){
+	            let self = this;
+	            this.formData.m3Name = "";
+	            this.formData.m2Name = "";
+	            this.formData.m1Name = "";
+	            this.m3List = [];
+	            this.m2List = [];
+	            this.m1List = [];
+	            self.getM3List();
+	        },
+	        //  选择M3
+	        onSelectM3(status){
+	            let str = 2;
+	            let self = this;
+	            for(let i=0;i<self.m3List.length;i++){
+	                if(self.m3List[i].salesmanId === status){
+	                    str = self.m3List[i].status;
+	                }
+	            }
+	            this.formData.m2Name = "";
+	            this.formData.m1Name = "";
+	            if(str !== 2){
+	                this.formData.m3Status = str;
+	            }
+	            this.m2List = [];
+	            this.m1List = [];
+	            this.getM2List();
+	        },
+	        //  选择M2
+	        onSelectM2(status){
+	            let str = 2;
+	            let self = this;
+	            for(let i=0;i<self.m2List.length;i++){
+	                if(self.m2List[i].salesmanId === status){
+	                    str = self.m2List[i].status;
+	                }
+	            }
+	            if(str !== 2){
+	                self.formData.m2Status = str;
+	            }
+	            self.formData.m1Name = "";
+	            self.m1List = [];
+	            self.getM1List();
+	        },
+	        //  选择M1
+	        onSelectM1(status){
+	            let str = 2;
+	            let self = this;
+	            for(let i=0;i<self.m1List.length;i++){
+	                if(self.m1List[i].salesmanId === status){
+	                    str = self.m1List[i].status;
+	                }
+	            }
+	            if(str !== 2){
+	                self.formData.m1Status = str;
+	            }
+	        },
+	
+	
+	
+	        //配置地图
+	        initMap(){
+	            let self = this;
+	
+	            let center = new qq.maps.LatLng(39.916527, 116.397128);
+	
+	            let options = {
+	                zoom: 15,
+	                center: center,
+	            };
+	
+	            map = new qq.maps.Map(self.$refs.qqMap, options);
+	
+	            geocoder = new qq.maps.Geocoder({
+	                complete: function (result) {
+	                    self.formData.latitude = result.detail.location.lat.toString();
+	                    self.formData.longitude = result.detail.location.lng.toString();
+	                    map.setCenter(result.detail.location);
+	
+	                    if (marker) {
+	                        marker.setMap(null);
+	                    }
+	
+	                    marker = new qq.maps.Marker({
+	                        map: map,
+	                        position: result.detail.location
+	                    });
+	                }
+	            });
+	
+	            qq.maps.event.addListener(map, 'click', function (event) {
+	                let center = new qq.maps.LatLng(event.latLng.getLat(), event.latLng.getLng());
+	
+	                if (marker) {
+	                    marker.setMap(null);
+	                }
+	
+	                marker = new qq.maps.Marker({
+	                    position: center,
+	                    map: map
+	                });
+	
+	                self.formData.latitude = event.latLng.getLat().toString();
+	                self.formData.longitude = event.latLng.getLng().toString();
+	            });
+	        },
+	
+	        //输入地址
+	        codeAddress(){
+	            geocoder.getLocation(this.formData.address);
+	        },
+	
+	        submit(){
+	            let self = this;
+	
+	            //表单验证
+	            self.$refs.form.validate(valid => {
+	                if (!valid) {
+	                    return;
+	                }
+	
+	                let postData = self.$qs.stringify({
+	                    "budUser.userId": self.userId,
+	                    "budUser.userStore": self.formData.storeName,
+	                    "budUser.userTel": self.formData.phone,
+	                    "budUser.userAccount": self.formData.phone,
+	                    "budUser.pwd": self.formData.password,
+	                    "budUser.source": self.formData.source,
+	                    "budUser.b2bIdOrWccs": self.formData.WCCS,
+	                    "budUser.amountCapacity": self.formData.moneyCapacity,
+	                    "budUser.salesCapacity": self.formData.salesCapacity,
+	                    "budUser.buCode": self.formData.department,
+	                    "budUser.regionCode": self.formData.area,
+	                    "budUser.areaCode": self.formData.city,
+	                    "budUser.M1Id": self.formData.m1Name,
+	                    // "budUser.M1": self.formData.m1Name,
+	                    // "budUser.M2": self.formData.m2Name,
+	                    // "budUser.M3": self.formData.m3Name,
+	                    // "budUser.M1Tel": self.formData.m1Phone,
+	                    // "budUser.M2Tel": self.formData.m2Phone,
+	                    // "budUser.M3Tel": self.formData.m3Phone,
+	                    "budUser.storeAddress": self.formData.address,
+	                    "budUser.longitude": self.formData.longitude,
+	                    "budUser.latitude": self.formData.latitude
+	                });
+	
+	                //显示全屏Loading
+	                let loading = self.$loading({fullscreen: true});
+	                self.$axios.post(self.$api.accountEdit, postData).then(res => {
+	                    loading.close();
+	
+	                    if (res.data.opflag) {
+	                        //保存成功弹出提示弹框
+	                        self.$message({
+	                            message: "保存成功！",
+	                            type: "success"
+	                        });
+	
+	                        //返回列表页
+	                        self.$router.push("/account");
+	                    } else {
+	                        self.$message({
+	                            message: res.data.opmessage,
+	                            type: "error"
+	                        });
+	                    }
+	                }).catch(() => {
+	                    loading.close();
+	                })
+	            })
+	        }
+	    },
+	
+	    mounted(){
+	        let self = this;
+	        self.loadData();
+	        self.getDepartment();
+	        self.$nextTick(() => {
+	            self.initMap();
+	        });
+	    }
 	      
-	});
+	})
    		
    	
    	
    	
- 
+   });
 		    	
     	
     	var obj = {'aa':'11', 'bb':'22', 'cc':'33', 'dd':'44'};
