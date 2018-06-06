@@ -8,30 +8,174 @@
 </head>
 <body>
 	
-	
-	 <div id="wrapper">
-	 	 {{message}}
-	 	
-	 	
-	 </div>
-	
-	
+
+    <div id="app">
+    	<el-breadcrumb separator="/" class="pageNav">
+            <el-breadcrumb-item>基础设置</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: '/account' }">账号管理</el-breadcrumb-item>
+            <el-breadcrumb-item>修改账号</el-breadcrumb-item>
+        </el-breadcrumb>
+
+        <el-form :model="formData" :rules="rules" :inline="true" ref="form" label-width="150px" class="formInline">
+            <div>
+                <el-form-item label="便利店名称" prop="storeName">
+                    <el-input v-model="formData.storeName"></el-input>
+                </el-form-item>
+                <el-form-item label="手机号" prop="phone">
+                    <el-input v-model="formData.phone"></el-input>
+                </el-form-item>
+                <el-form-item label="账号">
+                    <el-input :value="formData.phone" disabled></el-input>
+                </el-form-item>
+            </div>
+
+            <div>
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model="formData.password"></el-input>
+                </el-form-item>
+                <el-form-item label="来源" prop="source">
+                    <el-select v-model="formData.source" placeholder="请选择" size="small">
+                        <el-option label="B2B" value="0"></el-option>
+                        <el-option label="其他" value="1"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="WCCS代码/B2B ID" prop="WCCS">
+                    <el-input v-model="formData.WCCS"></el-input>
+                </el-form-item>
+            </div>
+
+            <div>
+                <el-form-item label="便利店容量(金额)" prop="moneyCapacity">
+                    <el-input v-model="formData.moneyCapacity"></el-input>
+                </el-form-item>
+                <el-form-item label="便利店容量(箱数)" prop="salesCapacity">
+                    <el-input v-model="formData.salesCapacity"></el-input>
+                </el-form-item>
+            </div>
+
+            <div>
+                <el-form-item label="事业部" prop="department">
+                    <el-select v-model="formData.department" placeholder="请选择" size="small"
+                               @change="onSelectDepartment">
+                        <el-option v-for="item in departmentList" :label="item.bu" :value="item.buCode"
+                                   :key="item.buCode"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="区域" prop="area">
+                    <el-select v-model="formData.area" placeholder="请选择" size="small" @change="onSelectArea">
+                        <el-option v-for="item in areaList" :label="item.region" :value="item.regionCode"
+                                   :key="item.regionCode"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="城市" prop="city">
+                    <el-select v-model="formData.city" placeholder="请选择" size="small" @change="onSelectCity">
+                        <el-option v-for="item in cityList" :label="item.area" :value="item.areaCode"
+                                   :key="item.areaCode"></el-option>
+                    </el-select>
+                </el-form-item>
+            </div>
+
+            <div>
+                <el-form-item label="M3" prop="m3Name">
+                    <el-select v-model="formData.m3Name" placeholder="请选择" size="small"
+                               @change="onSelectM3(formData.m3Name)" :class="{'setColor':formData.m3Status===1&&formData.m3Name}">
+                        <el-option v-for="item in m3List" :label="item.salesmanName" :value="item.salesmanId"
+                                   :key="item.salesmanId" :disabled="item.status===1"></el-option>
+                    </el-select>
+                    <p class="select_txt" v-if="formData.m3Status === 1&&formData.m3Name">该M3已被禁用请更换M3</p>
+                </el-form-item>
+                <el-form-item label="M2" prop="m2Name">
+                    <el-select v-model="formData.m2Name" placeholder="请选择" size="small"
+                               @change="onSelectM2(formData.m2Name)"  :class="{'setColor':formData.m2Status===1&&formData.m2Name}">
+                        <el-option v-for="item in m2List" :label="item.salesmanName" :value="item.salesmanId"
+                                   :key="item.salesmanId" :disabled="item.status===1"></el-option>
+                    </el-select>
+                    <p class="select_txt" v-if="formData.m2Status === 1&&formData.m2Name">该M2已被禁用请更换M2</p>
+                </el-form-item>
+                <el-form-item label="M1" prop="m1Name">
+                    <el-select v-model="formData.m1Name" :class="{'setColor':formData.m1Status===1&&formData.m1Name}"
+                               @change="onSelectM1(formData.m1Name)" placeholder="请选择" size="small">
+                        <el-option v-for="item in m1List" :label="item.salesmanName" :value="item.salesmanId"
+                                   :key="item.salesmanId" :disabled="item.status===1"></el-option>
+                    </el-select>
+                    <p class="select_txt" v-if="formData.m1Status === 1&&formData.m1Name">该M1已被禁用请更换M1</p>
+                </el-form-item>
+            </div>
+
+            <!--<div>-->
+                <!--<el-form-item label="M1" prop="m1Name">-->
+                    <!--<el-input v-model="formData.m1Name"></el-input>-->
+                <!--</el-form-item>-->
+                <!--<el-form-item label="M2" prop="m2Name">-->
+                    <!--<el-input v-model="formData.m2Name"></el-input>-->
+                <!--</el-form-item>-->
+                <!--<el-form-item label="M3" prop="m3Name">-->
+                    <!--<el-input v-model="formData.m3Name"></el-input>-->
+                <!--</el-form-item>-->
+            <!--</div>-->
+
+            <!--<div>-->
+                <!--<el-form-item label="M1手机号" prop="m1Phone">-->
+                    <!--<el-input v-model="formData.m1Phone"></el-input>-->
+                <!--</el-form-item>-->
+                <!--<el-form-item label="M2手机号" prop="m2Phone">-->
+                    <!--<el-input v-model="formData.m2Phone"></el-input>-->
+                <!--</el-form-item>-->
+                <!--<el-form-item label="M3手机号" prop="m3Phone">-->
+                    <!--<el-input v-model="formData.m3Phone"></el-input>-->
+                <!--</el-form-item>-->
+            <!--</div>-->
+
+            <div>
+                <el-form-item label="地址" prop="address">
+                    <el-input v-model="formData.address" @blur="codeAddress"></el-input>
+                </el-form-item>
+                <el-form-item label="经度" prop="longitude">
+                    <el-input v-model="formData.longitude" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="纬度" prop="latitude">
+                    <el-input v-model="formData.latitude" disabled></el-input>
+                </el-form-item>
+            </div>
+
+            <div class="qqMap" ref="qqMap"></div>
+
+            <div class="formBtn">
+                <el-button type="primary" @click="submit">提交</el-button>
+                <el-button @click="$router.go(-1)">返回</el-button>
+            </div>
+        </el-form>
+  	</div>
+
+
+
+
 	
 	
 	
 	<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
 	<script src='js/jquery.min.js'></script>
-	<script src="http://mockjs.com/dist/mock.js"></script>
+	 <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	 <!-- import Vue before Element -->
+	  
+	  <!-- import JavaScript -->
+	  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+	  <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+	 <script src="http://mockjs.com/dist/mock.js"></script>
 	 <script type="text/javascript">
     	
-    	new Vue({
-    		
-    		el:'#wrapper',
-    		data:{
-    			message:'helloworld'
-    		}
-    	})
-    	
+   $(function(){
+   		
+   		
+   		
+	      
+	});
+   		
+   	
+   	
+   	
+ 
+		    	
     	
     	var obj = {'aa':'11', 'bb':'22', 'cc':'33', 'dd':'44'};
 
@@ -56,13 +200,13 @@
 		    }]
 		});
 		   	
-    	$.ajax({
-		    url: 'http://test.com',
-		    type: 'get',
-		    dataType: 'json'
-		}).done(function(data, status, xhr) {
-		    console.log(JSON.stringify(data, null, 4));
-		});
+	    	$.ajax({
+			    url: 'http://test.com',
+			    type: 'get',
+			    dataType: 'json'
+			}).done(function(data, status, xhr) {
+			    console.log(JSON.stringify(data, null, 4));
+			});
 		
 			document.addEventListener('plusready', function(){
    			//console.log("所有plus api都应该在此事件发生后调用，否则会出现plus is undefined。"
